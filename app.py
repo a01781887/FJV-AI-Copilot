@@ -99,8 +99,61 @@ def suspicious_units(row, value_dict):
                 f"{role}: '{v.get('Value_Name')}' aparece con unidad monetaria dentro de un ratio porcentual; conviene validarla."
             )
     return issues
+def forecast_2027(row, rel):
+    # Historical values
+    values = [row["2023"], row["2024"], row["2025"], row["2026"]]
+    years = [2023, 2024, 2025, 2026]
 
+    if any(pd.isna(v) for v in values):
+        return None, "Not enough historical data"
+
+    # Simple linear trend
+    x_mean = sum(years) / len(years)
+    y_mean = sum(values) / len(values)
+
+    numerator = sum(
+        (x - x_mean) * (y - y_mean)
+        for x, y in zip(years, values)
+    )
+    denominator = sum((x - x_mean) ** 2 for x in years)
+
+    slope = numerator / denominator if denominator != 0 else 0
+    forecast = y_mean + slope * (2027 - x_mean)
+
+    # Small adjustment using related KPI momentum
+    if not rel.empty:
+        related_momentum = rel["Related_Performance_Change"].dropna()
+
+        if len(related_momentum) > 0:
+            avg_related = related_momentum.mean()
+
+            # Related KPIs influence max ±10%
+            adjustment = max(min(avg_related * 0.20, 0.10), -0.10)
+
+            if str(row["Direction"]) == "↑":
+                forecast = forecast * (1 + adjustment)
+
+            elif str(row["Direction"]) == "↓":
+                forecast = forecast * (1 - adjustment)
+
+    # Guardrails
+    unit = str(row["Unit"]).lower()
+
+    if "%" in unit:
+        forecast = max(0, min(100, forecast))
+
+    elif (
+        "día" in unit
+        or "day" in unit
+        or "#" in unit
+        or "proyecto" in unit
+        or "alianza" in unit
+    ):
+        forecast = max(0, forecast)
+
+    return forecast, "Trend 2023–2026 + related KPI signal"
 def build_analysis(row, rel, value_dict):
+    forecast_2027_value, forecast_method = forecast_2027(row, rel)
     perf = float(row["Performance_Change"]) if not pd.isna(row["Performance_Change"]) else None
     target_met, target_detail = evaluate_target(row)
 
@@ -232,20 +285,53 @@ analysis = build_analysis(row, rel, value_dict)
 
 st.subheader(row["KPI_Name"])
 st.caption(f"{row['Department']} · {row['Strategic_Objective']} · Owner: {row['Owner']}")
+c1, c2, c3, c4, c5 = st.columns(5)
 
-c1, c2, c3, c4 = st.columns(4)
-c1.metric("2026 Result", fmt_value(row["2026"], row["Unit"]))
-c2.metric("Target", str(row["Target_2026"]))
-c3.metric("3Y Baseline", fmt_value(row["Baseline_3Y"], row["Unit"]))
+c1.metric(
+    "2026 Result",
+    fmt_value(row["2026"], row["Unit"])
+)
+
+c2.metric(
+    "Target",
+    str(row["Target_2026"])
+)
+
+c3.metric(
+    "3Y Baseline",
+    fmt_value(row["Baseline_3Y"], row["Unit"])
+)
+
 momentum = row["Performance_Change"]
-c4.metric("Momentum", f"{float(momentum):+.1%}" if not pd.isna(momentum) else "N/D")
 
-years = pd.DataFrame({
-    "Year": [2023, 2024, 2025, 2026],
-    "Value": [row["2023"], row["2024"], row["2025"], row["2026"]],
+c4.metric(
+    "Momentum",
+    f"{float(momentum):+.1%}" if not pd.isna(momentum) else "N/D"
+)
+
+c5.metric(
+    "2027 Forecast",
+    fmt_value(forecast_2027_value, row["Unit"])
+    if forecast_2027_value is not None
+    else "N/D"
+)
+trend_data = pd.DataFrame({
+    "Year": [2023, 2024, 2025, 2026, 2027],
+    "Value": [
+        row["2023"],
+        row["2024"],
+        row["2025"],
+        row["2026"],
+        forecast_2027_value
+    ]
 }).set_index("Year")
-st.line_chart(years)
 
+st.line_chart(trend_data)
+
+st.caption(
+    f"2027 Estimated Forecast — {forecast_method}. "
+    "Projection for decision support; not an actual result."
+)
 tab1, tab2, tab3 = st.tabs(["Decision Brief", "Related KPIs", "KPI Context"])
 
 with tab1:
