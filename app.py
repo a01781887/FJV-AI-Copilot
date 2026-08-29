@@ -281,7 +281,10 @@ selected_id = labels[selected_label]
 
 row = kpis[kpis["KPI_ID"] == selected_id].iloc[0]
 rel = related[related["Focal_KPI_ID"] == selected_id].sort_values("Rank")
+
 analysis = build_analysis(row, rel, value_dict)
+
+forecast_2027_value, forecast_method = forecast_2027(row, rel)
 
 st.subheader(row["KPI_Name"])
 st.caption(f"{row['Department']} · {row['Strategic_Objective']} · Owner: {row['Owner']}")
