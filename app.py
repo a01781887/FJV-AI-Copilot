@@ -12,12 +12,191 @@ import streamlit as st
 # ============================================================
 
 st.set_page_config(
-    page_title="FJV · Decision Copilot",
+    st.markdown("""
+<div style="
+    background:#173F46;
+    padding:28px 32px;
+    border-radius:22px;
+    margin-bottom:18px;
+">
+    <div style="
+        color:#F3D777;
+        font-size:11px;
+        font-weight:700;
+        letter-spacing:0.15em;
+        text-transform:uppercase;
+        margin-bottom:8px;
+    ">
+        Fundación Jorge Vergara · Impact Intelligence
+    </div>
+
+    <div style="
+        color:white;
+        font-size:38px;
+        font-weight:750;
+        letter-spacing:-0.045em;
+    ">
+        FJV Decision Copilot
+    </div>
+
+    <div style="
+        color:rgba(255,255,255,.70);
+        font-size:14px;
+        margin-top:8px;
+    ">
+        KPI analysis · related signals · management recommendations · 2027 forecast
+    </div>
+</div>
+""", unsafe_allow_html=True)
     page_icon="✦",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+st.markdown("""
+<style>
 
+/* ===== FJV COLORS ===== */
+:root {
+    --fjv-purple: #6D43A2;
+    --fjv-orange: #F18A3A;
+    --fjv-teal: #173F46;
+    --fjv-sky: #8FCBE6;
+    --fjv-yellow: #F3D777;
+    --fjv-cream: #F7F2E9;
+    --fjv-white: #FFFDF9;
+    --fjv-ink: #263438;
+    --fjv-muted: #758185;
+    --fjv-border: #E6DFD5;
+}
+
+/* PAGE */
+[data-testid="stAppViewContainer"] {
+    background: #F7F2E9;
+}
+
+.block-container {
+    max-width: 1320px;
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+/* Remove unnecessary Streamlit chrome */
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+/* TITLES */
+h1 {
+    color: #173F46;
+    font-size: 2.4rem !important;
+    letter-spacing: -0.04em;
+}
+
+h2, h3 {
+    color: #263438;
+    letter-spacing: -0.025em;
+}
+
+/* KPI SELECTOR */
+div[data-baseweb="select"] > div {
+    background: #FFFDF9 !important;
+    border: 1px solid #E6DFD5 !important;
+    border-radius: 14px !important;
+    min-height: 52px;
+}
+
+/* METRIC CARDS */
+[data-testid="stMetric"] {
+    background: #FFFDF9;
+    border: 1px solid #E6DFD5;
+    padding: 18px;
+    border-radius: 18px;
+    min-height: 125px;
+    box-shadow: 0px 6px 20px rgba(30,40,42,0.04);
+}
+
+[data-testid="stMetricLabel"] {
+    color: #758185;
+    font-size: 0.78rem;
+    font-weight: 650;
+}
+
+[data-testid="stMetricValue"] {
+    color: #173F46;
+    font-weight: 750;
+    letter-spacing: -0.04em;
+}
+
+/* Give the forecast card a little distinction */
+div[data-testid="column"]:nth-of-type(5) [data-testid="stMetric"] {
+    background: #173F46;
+    border-color: #173F46;
+}
+
+div[data-testid="column"]:nth-of-type(5) [data-testid="stMetricLabel"],
+div[data-testid="column"]:nth-of-type(5) [data-testid="stMetricValue"] {
+    color: white !important;
+}
+
+/* INFO BANNER */
+[data-testid="stAlert"] {
+    background: #EEE7F6;
+    color: #503279;
+    border: none;
+    border-radius: 14px;
+}
+
+/* TABS */
+button[data-baseweb="tab"] {
+    font-weight: 650;
+    font-size: 0.9rem;
+}
+
+div[data-baseweb="tab-highlight"] {
+    background: #6D43A2 !important;
+}
+
+/* SUCCESS / RECOMMENDED ACTION */
+[data-testid="stAlert"][data-baseweb] {
+    border-radius: 16px;
+}
+
+/* DATAFRAME */
+[data-testid="stDataFrame"] {
+    background: #FFFDF9;
+    border: 1px solid #E6DFD5;
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+/* CHAT */
+[data-testid="stChatInput"] {
+    border-radius: 16px;
+}
+
+[data-testid="stChatMessage"] {
+    background: #FFFDF9;
+    border-radius: 16px;
+    padding: 8px 14px;
+    margin-bottom: 8px;
+}
+
+/* DIVIDERS */
+hr {
+    border-color: #E6DFD5;
+}
+
+/* GENERAL TEXT */
+p {
+    color: #536267;
+}
+
+</style>
+""", unsafe_allow_html=True)
 DATA_FILE = Path(__file__).parent / "FJV_AI_Copilot_Context.xlsx"
 
 
